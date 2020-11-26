@@ -40,7 +40,7 @@ class TokenController extends Controller {
 
     public static function validateToken(Request $request){
         $bearerToken = $request->bearerToken();
-        if (Token::where("access_token", $bearerToken)->exists()) {
+        if (Token::whereAccessToken($bearerToken)->exists()) {
             $token = Token::whereAccessToken($bearerToken)->first();
             $tokenCreationDate = $token->access_refresh_pair_creation_date;
             $now = date("U");

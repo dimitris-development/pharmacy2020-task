@@ -22,7 +22,7 @@ class UserController extends Controller {
         $email = $request->input('email');
         $password = $request->input('password');
 
-        $user = User::where('email', $email)->first();
+        $user = User::whereEmail($email)->first();
         if($user && Hash::check($password, $user->password)) {
             return TokenController::createToken($user->id);
         }
