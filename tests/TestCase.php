@@ -1,4 +1,7 @@
-<?php
+<?php /** @noinspection ALL */
+/** @noinspection ALL */
+
+/** @noinspection ALL */
 
 use Laravel\Lumen\Testing\TestCase as BaseTestCase;
 

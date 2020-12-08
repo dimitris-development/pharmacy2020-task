@@ -1,4 +1,8 @@
-<?php
+<?php /** @noinspection ALL */
+/** @noinspection ALL */
+/** @noinspection ALL */
+
+/** @noinspection ALL */
 
 namespace App\Models;
 
@@ -34,5 +38,5 @@ class User extends Model{
         'password'
     ];
 
- 
+
 }

@@ -1,4 +1,5 @@
 #!/usr/bin/env php
+/** @noinspection ALL */
 <?php
 
 use Symfony\Component\Console\Input\ArgvInput;

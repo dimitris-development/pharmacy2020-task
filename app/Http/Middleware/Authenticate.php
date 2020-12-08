@@ -1,4 +1,12 @@
-<?php
+<?php /** @noinspection ALL */
+/** @noinspection ALL */
+/** @noinspection ALL */
+/** @noinspection ALL */
+/** @noinspection ALL */
+/** @noinspection ALL */
+/** @noinspection ALL */
+
+/** @noinspection ALL */
 
 namespace App\Http\Middleware;
 
@@ -29,14 +37,14 @@ class Authenticate
      * Handle an incoming request.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
+     * @param callable $next
      * @param  string|null  $guard
      * @return mixed
      */
-    public function handle($request, Closure $next, $guard = null)
+    public function handle($request, Closure $next, $guard = null) : Closure
     {
         if ($this->auth->guard($guard)->guest()) {
-            //return response('Unauthorized.', 401);
+            return response('Unauthorized.', 401);
         }
 
         return $next($request);

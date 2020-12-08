@@ -1,8 +1,14 @@
-<?php
+<?php /** @noinspection ALL */
+
+/** @noinspection ALL */
 
 use Laravel\Lumen\Testing\DatabaseTransactions;
 use App\Models\User;
 use App\Models\Token;
+
+/**
+ * Class ApiTest
+ */
 class ApiTest extends TestCase {
     use DatabaseTransactions;
 
@@ -10,7 +16,7 @@ class ApiTest extends TestCase {
      * Ελέγχουμε το ότι κατά την είσοδο στην εφαρμογή δημιουργούνται
      * σωστά τα token καθώς και το ότι σε κάθε περίπτωση επιστρέφονται
      * τα κατάλληλα responses.
-     *  
+     *
      * @return void
      */
     public function testTokenCreation () {
@@ -24,7 +30,7 @@ class ApiTest extends TestCase {
         $bearerToken = $response->json()['access_token'];
         $refreshToken = $response->json()['refresh_token'];
         $this->seeInDatabase('tokens', ["access_token" => $bearerToken, "refresh_token" => $refreshToken, "is_expired" => 0, "user_id" => $testUser->id]);
-        
+
         $this->post('/api/login', ["email" => $testUser->email, "password" => "password!"])
              ->seeJsonEquals([
                 'message' => 'Unauthorized',
@@ -35,11 +41,11 @@ class ApiTest extends TestCase {
     // /**
     //  * Ελέγχουμε ότι τα token μπορούν να χρησιμοποιηθούν καθώς και
     //  * το ότι όταν λήγουν επιστρέφουν το κατάλληλο response.
-    //  * 
+    //  *
     //  * Για το test χρησιμοποιούνται οι σταθερές Token::REFRESH_TOKEN_LIFESPAN__TESTING και
-    //  * Token::ΑCCESS_TOKEN_LIFESPAN__TESTING αντί γιa Token::REFRESH_TOKEN_LIFESPAN και 
+    //  * Token::ΑCCESS_TOKEN_LIFESPAN__TESTING αντί γιa Token::REFRESH_TOKEN_LIFESPAN και
     //  * Token::ΑCCESS_TOKEN_LIFESPAN
-    //  * 
+    //  *
     //  * @return void
     //  */
     public function testTokenValidation () {
@@ -55,7 +61,7 @@ class ApiTest extends TestCase {
             'first_name' => $testUser->first_name,
             'last_name' => $testUser->last_name
         ]);
-        
+
         $response = $this->call('POST','/api/login', ["email" => $testUser->email, "password" => "password"]);
         $incorrectBearerToken = $response->json()['access_token']."!";
 
@@ -95,16 +101,16 @@ class ApiTest extends TestCase {
 
     // /**
     //  * Ελέγχουμε ότι όταν λήγει το access token, με την χρήση του
-    //  * κατάλληλου refresh token δημιουργείται και επιστρέφεται response 
+    //  * κατάλληλου refresh token δημιουργείται και επιστρέφεται response
     //  * που περιέχει καινούργιο ζεύγος refresh-access token.
-    //  * 
-    //  * Παράλληλα ελέγχουμε ότι όταν λήγει το refresh token δεν 
+    //  *
+    //  * Παράλληλα ελέγχουμε ότι όταν λήγει το refresh token δεν
     //  * μπορεί να δημιουργηθεί καινούργιο ζεύγος refresh-access token
-    //  * 
+    //  *
     //  * Για το test χρησιμοποιούνται οι σταθερές Token::REFRESH_TOKEN_LIFESPAN__TESTING και
-    //  * Token::ΑCCESS_TOKEN_LIFESPAN__TESTING αντί γιa Token::REFRESH_TOKEN_LIFESPAN και 
+    //  * Token::ΑCCESS_TOKEN_LIFESPAN__TESTING αντί γιa Token::REFRESH_TOKEN_LIFESPAN και
     //  * Token::ΑCCESS_TOKEN_LIFESPAN
-    //  * 
+    //  *
     //  * @return void
     //  */
     public function testTokenRefresh () {
@@ -146,8 +152,8 @@ class ApiTest extends TestCase {
     }
 
     /**
-     * Ελέγχουμε ότι τα token λήγουν κατά το logout 
-     * 
+     * Ελέγχουμε ότι τα token λήγουν κατά το logout
+     *
      * @return void
      */
     public function testTokenExpiration () {

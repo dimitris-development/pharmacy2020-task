@@ -10,6 +10,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 
+/**
+ * Class UserController
+ * @package App\Http\Controllers
+ */
 class UserController extends Controller {
 
     /**
@@ -31,14 +35,14 @@ class UserController extends Controller {
             'message' => 'Unauthorized',
             'reason' => 'Incorrect username or password.'
         ], 401);
-        
+
     }
 
     public function getUserInfo(Request $request){
         $bearerToken = $request->bearerToken();
         $responseFromTokenValidator = TokenController::validateToken($request);
         if ($responseFromTokenValidator === ["message" => "Token validated"]) {
-            
+
             $token = Token::whereAccessToken($bearerToken)->first();
             $user = User::whereId($token->user_id)->first();
             return [

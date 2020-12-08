@@ -13,13 +13,13 @@
         <div class="container-fluid h-100">
             <div class="row justify-content-center align-items-center h-100">
                 <div class="col col-sm-6 col-md-6 col-lg-4 col-xl-3">
-                    <div class="alert alert-warning alert-dismissible fade show" role="alert" 
-                    style="display: none">
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert"
+                    style="display: none;">
                         <button type="button" class="close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <h2 class="text-center mb-5">Login</h2>    
+                    <h2 class="text-center mb-5">Login</h2>
                     <form id="loginForm">
                         <div class="form-group">
                             <label for="emailAddress">Email address</label>

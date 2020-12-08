@@ -1,4 +1,6 @@
-<?php
+<?php /** @noinspection ALL */
+
+/** @noinspection ALL */
 
 namespace App\Models;
 
@@ -24,7 +26,7 @@ class Token extends Model {
      *
      * @var bool
      */
-    
+
     protected $fillable = [
         'access_token', 'refresh_token', 'user_id', 'is_expired'
     ];

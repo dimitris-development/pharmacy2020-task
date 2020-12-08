@@ -1,17 +1,23 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
-use App\Http\Controllers\Controller;
 
 use App\Models\Token;
-
-
 use Illuminate\Http\Request;
 
+/**
+ * Class TokenController
+ * @package App\Http\Controllers
+ */
 class TokenController extends Controller {
 
-    public static function createToken($user_id) {
-        
+    /**
+     * @param $user_id
+     * @return Response
+     */
+    public static function createToken(int $user_id) : Response {
+
         if (Token::whereUserIdAndIsExpired($user_id, 0)->exists()){
             $token = Token::whereUserId($user_id)->first();
             $token->is_expired = 1;
@@ -19,89 +25,106 @@ class TokenController extends Controller {
         }
 
         do {
-            $access_token = bin2hex(openssl_random_pseudo_bytes(64));
-            $access_tokenAlreadyExists = Token::whereAccessToken($access_token)->exists();
-        } while ($access_tokenAlreadyExists);
-        $refresh_token = bin2hex(openssl_random_pseudo_bytes(128));
+            $access_token = bin2hex(random_bytes(64));
+            $acc_token_exists = Token::whereAccessToken($access_token)->exists();
+        } while ($acc_token_exists);
+        $refresh_token = bin2hex(random_bytes(128));
 
-        $token = new Token;
+        $token = new Token();
         $token->access_token = $access_token;
         $token->refresh_token = $refresh_token;
         $token->user_id = $user_id;
         $token->save();
 
-        return [
+        return response()->json([
             'token_type' => 'Bearer',
             'access_token' => $access_token,
             'expires_in' => Token::ACCESS_TOKEN_LIFESPAN,
             'refresh_token' => $refresh_token,
-        ];
+        ], 200);
     }
 
-    public static function validateToken(Request $request){
-        $bearerToken = $request->bearerToken();
-        if (Token::whereAccessToken($bearerToken)->exists()) {
-            $token = Token::whereAccessToken($bearerToken)->first();
-            $tokenCreationDate = $token->access_refresh_pair_creation_date;
-            $now = date("U");
-            if ($now - strtotime($tokenCreationDate) >= Token::REFRESH_TOKEN_LIFESPAN){
+    /**
+     * @param Request $request
+     * @return Response
+     */
+    public static function validateToken (Request $request) : Response {
+        $bearer_token = $request->bearerToken();
+        if (Token::whereAccessToken($bearer_token)->exists()) {
+            $token = Token::whereAccessToken($bearer_token)->first();
+            $token_creat_date = $token->access_refresh_pair_creation_date;
+            $date_now = date('U');
+
+            if ($date_now - strtotime($token_creat_date) >= Token::REFRESH_TOKEN_LIFESPAN) {
                 $token->is_expired = 1;
                 $token->save();
-                return response()->json([
-                    "error" => "invalid_token",
-                    "error_description" => "The refresh token is expired"
+                $response = response()->json([
+                    'error' => 'invalid_token',
+                    'error_description' => 'The refresh token is expired'
                 ], 401);
-            } else if ($now - strtotime($tokenCreationDate) >= Token::ACCESS_TOKEN_LIFESPAN) {
-                return response()->json([
-                    "error" => "invalid_token",
-                    "error_description"=> "The access token is expired"
+            }
+            elseif ($date_now - strtotime($token_creat_date) >= Token::ACCESS_TOKEN_LIFESPAN) {
+                $response = response()->json([
+                    'error' => 'invalid_token',
+                    'error_description'=> 'The access token is expired'
                 ], 401)
-                    ->header('WWW-Authenticate','Bearer error="invalid_token" error_description="The access token expired" ');
+                    ->header('WWW-Authenticate',
+                        'Bearer error=\'invalid_token\' error_description=\'The access token expired\'');
             } else {
-                return [
-                    "message" => "Token validated"
-                ];
+                $response = response()->json([
+                    'message' => 'Token validated'
+                ], 200);
             }
         } else {
-            return response()->json([
-                "error" => "invalid_grant"
+            $response = response()->json([
+                'error' => 'invalid_grant'
             ], 400);
         }
+        return $response;
     }
 
-    public static function revokeToken(Request $request){
-        $bearerToken = $request->bearerToken();
-        $responseFromTokenValidator = TokenController::validateToken($request);
-        if ($responseFromTokenValidator === ["message" => "Token validated"]){
-            $token = Token::whereAccessToken($bearerToken)->first();
+    public static function revokeToken (Request $request) : Response {
+        $bearer_token = $request->bearerToken();
+        $validator_resp = self::validateToken($request);
+        if ($validator_resp === ['message' => 'Token validated']){
+            $token = Token::whereAccessToken($bearer_token)->first();
             $token->is_expired = 1;
             $token->save();
-            return [
-                "message" => "Token revoked"
-            ];
-        } 
-        return $responseFromTokenValidator;
+            $response = response()->json([
+                'message' => 'Token revoked'
+            ]);
+        } else {
+            $response = $validator_resp;
+        }
+        return $response;
     }
 
-    public function refreshToken(Request $request) {
+    /**
+     * @param Request $request
+     * @return Response
+     */
+    public function refreshToken (Request $request) : Response {
         $refresh_token = $request->input('refresh_token');
         if (Token::whereRefreshToken($refresh_token)->exists()){
             $token = Token::whereRefreshToken($refresh_token)->first();
-            $tokenCreationDate = $token->access_refresh_pair_creation_date;
-            $now = date("U");
-            if ($now - strtotime($tokenCreationDate) >= Token::REFRESH_TOKEN_LIFESPAN){
-                return response()->json([
-                    "error" => "invalid_token",
-                    "error_description" => "The refresh token is expired"
+            $token_creat_date = $token->access_refresh_pair_creation_date;
+            $date_now = date('U');
+            if ($date_now - strtotime($token_creat_date) >= Token::REFRESH_TOKEN_LIFESPAN){
+                $response = response()->json([
+                    'error' => 'invalid_token',
+                    'error_description' => 'The refresh token is expired'
                 ], 401);
+            } else {
+                $user_id = $token->user_id;
+                $token->delete();
+                $response = self::createToken($user_id);
             }
-            $user_id = $token->user_id;
-            $token->delete();
-            return $this->createToken($user_id);
+
         } else {
-            return response()->json([
-                "error" => "invalid_grant"
+            $response = response()->json([
+                'error' => 'invalid_grant'
             ], 400);
         }
+        return $response;
     }
 }
