@@ -1,11 +1,12 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
-use App\Http\Controllers\Controller;
 
 use App\Models\Token;
 use App\Models\User;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -20,15 +21,15 @@ class UserController extends Controller {
      * Handles authentication and if granted responds with a bearer token
      *
      * @param  Request  $request
-     * @return Response
+     * @return JsonResponse
      */
-    public function authenticate(Request $request) {
+    public function authenticate(Request $request) : JsonResponse {
         $email = $request->input('email');
         $password = $request->input('password');
 
-        $user = User::whereEmail($email)->first();
-        if($user && Hash::check($password, $user->password)) {
-            return TokenController::createToken($user->id);
+        $auth_user = User::whereEmail($email)->first();
+        if($auth_user && Hash::check($password, $auth_user->password)) {
+            return TokenController::createToken($auth_user->id);
         }
 
         return response()->json([
@@ -38,28 +39,31 @@ class UserController extends Controller {
 
     }
 
-    public function getUserInfo(Request $request){
-        $bearerToken = $request->bearerToken();
-        $responseFromTokenValidator = TokenController::validateToken($request);
-        if ($responseFromTokenValidator === ["message" => "Token validated"]) {
-
-            $token = Token::whereAccessToken($bearerToken)->first();
-            $user = User::whereId($token->user_id)->first();
-            return [
-                "first_name" => $user->first_name,
-                "last_name" => $user->last_name
-            ];
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getUserInfo(Request $request) : JsonResponse {
+        $bearer_token = $request->bearerToken();
+        $validator_resp = TokenController::validateToken($request);
+        if ($validator_resp->content() === '{"message":"Token validated"}') {
+            $token = Token::whereAccessToken($bearer_token)->first();
+            $valid_user = User::whereId($token->user_id)->first();
+            return response()->json([
+                'first_name' => $valid_user->first_name,
+                'last_name' => $valid_user->last_name
+            ]);
         }
-        return $responseFromTokenValidator;
+        return $validator_resp;
     }
 
     /**
-     * Logout a user into the platform
+     * Logout a user
      *
      * @param  Request  $request
-     * @return Response
+     * @return JsonResponse
      */
-    public function logout(Request $request) {
+    public function logout(Request $request) : JsonResponse {
         return TokenController::revokeToken($request);
     }
 }

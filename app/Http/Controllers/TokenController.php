@@ -4,7 +4,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Token;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 /**
  * Class TokenController
@@ -12,11 +14,16 @@ use Illuminate\Http\Request;
  */
 class TokenController extends Controller {
 
+
+    private const ACCESS_TOKEN_LIFESPAN = Token::ACCESS_TOKEN_LIFESPAN__TESTING;
+    private const REFRESH_TOKEN_LIFESPAN = Token::REFRESH_TOKEN_LIFESPAN__TESTING;
+
     /**
      * @param $user_id
-     * @return Response
+     * @return JsonResponse
      */
-    public static function createToken(int $user_id) : Response {
+    public static function createToken(int $user_id) : JsonResponse
+    {
 
         if (Token::whereUserIdAndIsExpired($user_id, 0)->exists()){
             $token = Token::whereUserId($user_id)->first();
@@ -28,6 +35,7 @@ class TokenController extends Controller {
             $access_token = bin2hex(random_bytes(64));
             $acc_token_exists = Token::whereAccessToken($access_token)->exists();
         } while ($acc_token_exists);
+
         $refresh_token = bin2hex(random_bytes(128));
 
         $token = new Token();
@@ -39,23 +47,23 @@ class TokenController extends Controller {
         return response()->json([
             'token_type' => 'Bearer',
             'access_token' => $access_token,
-            'expires_in' => Token::ACCESS_TOKEN_LIFESPAN,
+            'expires_in' => self::ACCESS_TOKEN_LIFESPAN,
             'refresh_token' => $refresh_token,
-        ], 200);
+        ]);
     }
 
     /**
      * @param Request $request
-     * @return Response
+     * @return JsonResponse
      */
-    public static function validateToken (Request $request) : Response {
+    public static function validateToken (Request $request) : JsonResponse
+    {
         $bearer_token = $request->bearerToken();
         if (Token::whereAccessToken($bearer_token)->exists()) {
             $token = Token::whereAccessToken($bearer_token)->first();
             $token_creat_date = $token->access_refresh_pair_creation_date;
-            $date_now = date('U');
-
-            if ($date_now - strtotime($token_creat_date) >= Token::REFRESH_TOKEN_LIFESPAN) {
+            $date_now = Carbon::now();
+            if ($token_creat_date->diffInSeconds($date_now) >= self::REFRESH_TOKEN_LIFESPAN) {
                 $token->is_expired = 1;
                 $token->save();
                 $response = response()->json([
@@ -63,7 +71,7 @@ class TokenController extends Controller {
                     'error_description' => 'The refresh token is expired'
                 ], 401);
             }
-            elseif ($date_now - strtotime($token_creat_date) >= Token::ACCESS_TOKEN_LIFESPAN) {
+            elseif ($token_creat_date->diffInSeconds($date_now) >= self::ACCESS_TOKEN_LIFESPAN) {
                 $response = response()->json([
                     'error' => 'invalid_token',
                     'error_description'=> 'The access token is expired'
@@ -73,7 +81,7 @@ class TokenController extends Controller {
             } else {
                 $response = response()->json([
                     'message' => 'Token validated'
-                ], 200);
+                ]);
             }
         } else {
             $response = response()->json([
@@ -83,10 +91,10 @@ class TokenController extends Controller {
         return $response;
     }
 
-    public static function revokeToken (Request $request) : Response {
+    public static function revokeToken (Request $request) : JsonResponse {
         $bearer_token = $request->bearerToken();
         $validator_resp = self::validateToken($request);
-        if ($validator_resp === ['message' => 'Token validated']){
+        if ($validator_resp->content() === '{"message":"Token validated"}'){
             $token = Token::whereAccessToken($bearer_token)->first();
             $token->is_expired = 1;
             $token->save();
@@ -101,15 +109,15 @@ class TokenController extends Controller {
 
     /**
      * @param Request $request
-     * @return Response
+     * @return JsonResponse
      */
-    public function refreshToken (Request $request) : Response {
+    public function refreshToken (Request $request) : JsonResponse {
         $refresh_token = $request->input('refresh_token');
         if (Token::whereRefreshToken($refresh_token)->exists()){
             $token = Token::whereRefreshToken($refresh_token)->first();
             $token_creat_date = $token->access_refresh_pair_creation_date;
-            $date_now = date('U');
-            if ($date_now - strtotime($token_creat_date) >= Token::REFRESH_TOKEN_LIFESPAN){
+            $date_now = Carbon::now();
+            if ($token_creat_date->diffInSeconds($date_now) >= self::REFRESH_TOKEN_LIFESPAN){
                 $response = response()->json([
                     'error' => 'invalid_token',
                     'error_description' => 'The refresh token is expired'

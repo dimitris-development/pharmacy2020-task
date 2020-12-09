@@ -1,16 +1,21 @@
-<?php /** @noinspection ALL */
-/** @noinspection ALL */
+<?php /** @noinspection PhpMissingStrictTypesDeclarationInspection */
 
-/** @noinspection ALL */
-
+use Laravel\Lumen\Application;
 use Laravel\Lumen\Testing\TestCase as BaseTestCase;
 
+/**
+ * Class TestCase
+ */
 abstract class TestCase extends BaseTestCase
 {
     /**
      * Creates the application.
      *
-     * @return \Laravel\Lumen\Application
+     * @return Application
+     * @noinspection PhpMethodNamingConventionInspection
+     * @noinspection ReturnTypeCanBeDeclaredInspection
+     * @noinspection PhpMissingReturnTypeInspection
+     * @noinspection UsingInclusionReturnValueInspection
      */
     public function createApplication()
     {
