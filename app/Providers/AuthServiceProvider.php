@@ -1,6 +1,5 @@
 <?php /** @noinspection ALL */
 
-/** @noinspection ALL */
 
 namespace App\Providers;
 
@@ -36,12 +35,13 @@ class AuthServiceProvider extends ServiceProvider
         // the User instance via an API token or any other method necessary.
 
         $this->app['auth']->viaRequest('api', function ($request) {
-            $responseFromTokenValidator = TokenController::validateToken($request);
-            if ($responseFromTokenValidator === ["message" => "Token validated"]) {
-                $bearerToken = $request->bearerToken();
-                $token = Token::whereAccessToken($bearerToken)->first();
-                return User::where('id', $token->user_id)->first();
-            }
+//            $responseFromTokenValidator = TokenController::validateToken($request);
+//            if (["message" => "Token validated"] === $responseFromTokenValidator) {
+//                $bearerToken = $request->bearerToken();
+//                $token = Token::whereAccessToken($bearerToken)->first();
+//
+//            }
+//            return null;
         });
     }
 }

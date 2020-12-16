@@ -118,7 +118,7 @@ class TokenTest extends TestCase {
         $response = $this->call('POST','/api/login', ['email' => $test_user->email, 'password' => 'password']);
         $refresh_token = $response->json()['refresh_token'];
         sleep(Token::ACCESS_TOKEN_LIFESPAN__TESTING);
-        $response = $this->call('POST','/api/refresh_token', ['refresh_token' => $refresh_token]);
+        $response = $this->call('GET','/api/refresh_token', ['refresh_token' => $refresh_token]);
         $bearer_token = $response->json()['access_token'];
         $this->get('/api/get_user_info',
         [
@@ -131,7 +131,7 @@ class TokenTest extends TestCase {
 
         $response = $this->call('POST','/api/login', ['email' => $test_user->email, 'password' => 'password']);
         $refresh_token = $response->json()['refresh_token'];
-        $response = $this->call('POST','/api/refresh_token', ['refresh_token' => $refresh_token]);
+        $response = $this->call('GET','/api/refresh_token', ['refresh_token' => $refresh_token]);
         $bearer_token = $response->json()['access_token'];
         sleep(Token::REFRESH_TOKEN_LIFESPAN__TESTING);
         $this->get('/api/get_user_info',
@@ -145,7 +145,7 @@ class TokenTest extends TestCase {
 
         $response = $this->call('POST','/api/login', ['email' => $test_user->email, 'password' => 'password']);
         $refresh_token = $response->json()['refresh_token'];
-        $this->post('/api/refresh_token', ['refresh_token' => $refresh_token.'!'])
+        $this->get('/api/refresh_token', ['refresh_token' => $refresh_token.'!'])
              ->seeJsonEquals([
                 'error' => 'invalid_grant'
              ]);

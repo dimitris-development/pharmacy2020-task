@@ -7,6 +7,7 @@ use App\Models\Token;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use JetBrains\PhpStorm\ArrayShape;
 
 /**
  * Class TokenController
@@ -53,12 +54,15 @@ class TokenController extends Controller {
     }
 
     /**
-     * @param Request $request
-     * @return JsonResponse
+     * @param $bearer_token
+     * @return array
      */
-    public static function validateToken (Request $request) : JsonResponse
+    #[ArrayShape([
+        'error' => 'string',
+        'error_description' => 'string',
+        'message' => 'string'
+    ])] public static function validateToken ($bearer_token) : array
     {
-        $bearer_token = $request->bearerToken();
         if (Token::whereAccessToken($bearer_token)->exists()) {
             $token = Token::whereAccessToken($bearer_token)->first();
             $token_creat_date = $token->access_refresh_pair_creation_date;
@@ -66,45 +70,37 @@ class TokenController extends Controller {
             if ($token_creat_date->diffInSeconds($date_now) >= self::REFRESH_TOKEN_LIFESPAN) {
                 $token->is_expired = 1;
                 $token->save();
-                $response = response()->json([
+                $response = [
                     'error' => 'invalid_token',
                     'error_description' => 'The refresh token is expired'
-                ], 401);
+                ];
             }
             elseif ($token_creat_date->diffInSeconds($date_now) >= self::ACCESS_TOKEN_LIFESPAN) {
-                $response = response()->json([
+                $response = [
                     'error' => 'invalid_token',
-                    'error_description'=> 'The access token is expired'
-                ], 401)
-                    ->header('WWW-Authenticate',
-                        'Bearer error=\'invalid_token\' error_description=\'The access token expired\'');
+                    'error_description' => 'The access token is expired'
+                ];
             } else {
-                $response = response()->json([
+                $response = [
                     'message' => 'Token validated'
-                ]);
+                ];
             }
         } else {
-            $response = response()->json([
+            $response = [
                 'error' => 'invalid_grant'
-            ], 400);
+            ];
         }
         return $response;
     }
 
     public static function revokeToken (Request $request) : JsonResponse {
         $bearer_token = $request->bearerToken();
-        $validator_resp = self::validateToken($request);
-        if ($validator_resp->content() === '{"message":"Token validated"}'){
-            $token = Token::whereAccessToken($bearer_token)->first();
-            $token->is_expired = 1;
-            $token->save();
-            $response = response()->json([
-                'message' => 'Token revoked'
-            ]);
-        } else {
-            $response = $validator_resp;
-        }
-        return $response;
+        $token = Token::whereAccessToken($bearer_token)->first();
+        $token->is_expired = 1;
+        $token->save();
+        return response()->json([
+            'message' => 'Token revoked'
+        ]);
     }
 
     /**

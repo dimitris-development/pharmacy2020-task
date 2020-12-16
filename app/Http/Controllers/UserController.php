@@ -45,16 +45,13 @@ class UserController extends Controller {
      */
     public function getUserInfo(Request $request) : JsonResponse {
         $bearer_token = $request->bearerToken();
-        $validator_resp = TokenController::validateToken($request);
-        if ($validator_resp->content() === '{"message":"Token validated"}') {
-            $token = Token::whereAccessToken($bearer_token)->first();
-            $valid_user = User::whereId($token->user_id)->first();
-            return response()->json([
-                'first_name' => $valid_user->first_name,
-                'last_name' => $valid_user->last_name
-            ]);
-        }
-        return $validator_resp;
+        $token = Token::whereAccessToken($bearer_token)->first();
+        $valid_user = User::whereId($token->user_id)->first();
+        return response()->json([
+            'first_name' => $valid_user->first_name,
+            'last_name' => $valid_user->last_name
+        ]);
+
     }
 
     /**

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 /*
 |--------------------------------------------------------------------------
@@ -11,18 +12,11 @@
 |
 */
 
-$router->get('/', function () {
-    return view('home');
-});
-
-$router->get('/login', function () {
-    return view('login');
-});
-
 $router->group(['prefix' => 'api'], function () use ($router) {
     $router->post('login', 'UserController@authenticate');
-    $router->post('logout', 'UserController@logout');
-    $router->get('get_user_info', 'UserController@getUserInfo');
-    $router->post('refresh_token', 'TokenController@refreshToken');
-    $router->post('is_token_valid', 'TokenController@validateToken');
+    $router->get('refresh_token', 'TokenController@refreshToken');
+    $router->group(['middleware' => 'token_validator'], function () use ($router) {
+        $router->post('logout', 'UserController@logout');
+        $router->get('get_user_info', 'UserController@getUserInfo');
+    });
 });

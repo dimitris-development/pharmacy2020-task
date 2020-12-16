@@ -1,7 +1,5 @@
 <?php /** @noinspection ALL */
-/** @noinspection ALL */
-/** @noinspection ALL */
-/** @noinspection ALL */
+
 
 require_once __DIR__.'/../vendor/autoload.php';
 
@@ -75,14 +73,15 @@ $app->configure('app');
 |
 */
 
-// $app->middleware([
+ $app->middleware([
+ //   App\Http\Middleware\Authenticate::class
 //     App\Http\Middleware\ExampleMiddleware::class,
-// ]);
+ ]);
 
-// $app->routeMiddleware([
-//     'auth' => App\Http\Middleware\Authenticate::class
+ $app->routeMiddleware([
+     'token_validator' => App\Http\Middleware\TokenValidator::class
 //     'auth' => App\Http\Middleware\AuthMiddleware::class
-// ]);
+]);
 
 /*
 |--------------------------------------------------------------------------
@@ -96,7 +95,7 @@ $app->configure('app');
 */
 
 $app->register(App\Providers\AppServiceProvider::class);
-// $app->register(App\Providers\AuthServiceProvider::class);
+//$app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
 
 /*
