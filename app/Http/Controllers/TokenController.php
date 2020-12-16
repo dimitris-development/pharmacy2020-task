@@ -58,6 +58,7 @@ class TokenController extends Controller {
      * @return array
      */
     #[ArrayShape([
+        'error_id' => integer,
         'error' => 'string',
         'error_description' => 'string',
         'message' => 'string'
@@ -71,12 +72,14 @@ class TokenController extends Controller {
                 $token->is_expired = 1;
                 $token->save();
                 $response = [
+                    'error_id' => 2,
                     'error' => 'invalid_token',
                     'error_description' => 'The refresh token is expired'
                 ];
             }
             elseif ($token_creat_date->diffInSeconds($date_now) >= self::ACCESS_TOKEN_LIFESPAN) {
                 $response = [
+                    'error_id' => 1,
                     'error' => 'invalid_token',
                     'error_description' => 'The access token is expired'
                 ];
@@ -87,7 +90,9 @@ class TokenController extends Controller {
             }
         } else {
             $response = [
-                'error' => 'invalid_grant'
+                'error_id' => 3,
+                'error' => 'invalid_grant',
+                'error_description' => 'This access token does not exist'
             ];
         }
         return $response;
@@ -115,6 +120,7 @@ class TokenController extends Controller {
             $date_now = Carbon::now();
             if ($token_creat_date->diffInSeconds($date_now) >= self::REFRESH_TOKEN_LIFESPAN){
                 $response = response()->json([
+                    'error_id' => 2,
                     'error' => 'invalid_token',
                     'error_description' => 'The refresh token is expired'
                 ], 401);
@@ -126,7 +132,9 @@ class TokenController extends Controller {
 
         } else {
             $response = response()->json([
-                'error' => 'invalid_grant'
+                'error_id' => 3,
+                'error' => 'invalid_grant',
+                'error_description' => 'This access token does not exist'
             ], 400);
         }
         return $response;

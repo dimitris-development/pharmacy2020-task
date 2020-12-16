@@ -70,7 +70,9 @@ class TokenTest extends TestCase {
             'Authorization' => 'Bearer '.$incorrect_token,
             'Accept' => 'application/json'
         ])->seeJsonEquals([
-            'error' => 'invalid_grant'
+            'error_id' => 3,
+            'error' => 'invalid_grant',
+            'error_description' => 'This access token does not exist'
         ]);
 
         $response = $this->call('POST','/api/login', ['email' => $test_user->email, 'password' => 'password']);
@@ -81,6 +83,7 @@ class TokenTest extends TestCase {
             'Authorization' => 'Bearer '.$bearer_token,
             'Accept' => 'application/json'
         ])->seeJsonEquals([
+            'error_id' => 1,
             'error' => 'invalid_token',
             'error_description' => 'The access token is expired'
         ]);
@@ -93,6 +96,7 @@ class TokenTest extends TestCase {
             'Authorization' => 'Bearer '.$bearer_token,
             'Accept' => 'application/json'
         ])->seeJsonEquals([
+            'error_id' => 2,
             'error' => 'invalid_token',
             'error_description' => 'The refresh token is expired'
         ]);
@@ -139,6 +143,7 @@ class TokenTest extends TestCase {
             'Authorization' => 'Bearer '.$bearer_token,
             'Accept' => 'application/json'
         ])->seeJsonEquals([
+            'error_id' => 2,
             'error' => 'invalid_token',
             'error_description' => 'The refresh token is expired'
         ]);
@@ -147,7 +152,9 @@ class TokenTest extends TestCase {
         $refresh_token = $response->json()['refresh_token'];
         $this->get('/api/refresh_token', ['refresh_token' => $refresh_token.'!'])
              ->seeJsonEquals([
-                'error' => 'invalid_grant'
+                 'error_id' => 3,
+                 'error' => 'invalid_grant',
+                 'error_description' => 'This access token does not exist'
              ]);
     }
 
