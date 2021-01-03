@@ -12,11 +12,11 @@ declare(strict_types=1);
 |
 */
 
-$router->group(['prefix' => 'api'], function () use ($router) {
-    $router->post('login', 'UserController@authenticate');
-    $router->get('refresh_token', 'TokenController@refreshToken');
+$router->group(['prefix' => 'api', 'middleware' => 'cors'], function () use ($router) {
+    $router->post('/login', 'UserController@authenticate');
+    $router->get('/refresh_token', 'TokenController@refreshToken');
     $router->group(['middleware' => 'token_validator'], function () use ($router) {
-        $router->post('logout', 'UserController@logout');
-        $router->get('get_user_info', 'UserController@getUserInfo');
+        $router->post('/logout', 'UserController@logout');
+        $router->get('/get_user_info', 'UserController@getUserInfo');
     });
 });

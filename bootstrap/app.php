@@ -79,7 +79,8 @@ $app->configure('app');
  ]);
 
  $app->routeMiddleware([
-     'token_validator' => App\Http\Middleware\TokenValidator::class
+    'token_validator' => App\Http\Middleware\TokenValidator::class,
+    'cors'            => App\Http\Middleware\CorsMiddleware::class
 //     'auth' => App\Http\Middleware\AuthMiddleware::class
 ]);
 
